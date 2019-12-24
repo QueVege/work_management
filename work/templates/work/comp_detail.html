@@ -1,0 +1,25 @@
+{% extends 'work/base.html' %}
+
+{% block content %}
+    <h1 class='company'>{{ company.name }}</h1>
+    <p><a href="{% url 'work:manag_list' company.id %}">Managers</a></p>
+    <ul>
+    {% for work in works %}
+        <div class='work'>
+            <li>{{ work.name }}
+                {% if work in no_approved_wp %}
+                    <p class='position'>No approved workplaces.</p>
+                {% else %}
+                    <ul class='position'>
+                    {% for wp in work.workplaces.all %}
+                        {% if wp.status == 1 %}
+                            <li>{{ wp.worker.first_name }} {{ wp.worker.last_name }}</li>
+                        {% endif %}
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        </div>
+    {% endfor %}
+    </ul>
+{% endblock %}

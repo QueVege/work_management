@@ -1,0 +1,28 @@
+{% load static %}
+
+<html>
+    <head>
+        <title>WorkManagment</title>
+        <link rel="stylesheet" type="text/css" href="{% static 'work/style.css' %}">
+    </head>
+    <body>
+        <div class='container'>
+            <header>
+                {% if user.is_authenticated %}
+                    <div class='log'><a href="{% url 'accounts:logout' %}">LogOut</a></div>
+                {% else %}
+                    <div class='log'><a href="{% url 'accounts:login' %}">LogIn</a></div>
+                {% endif %}
+                <nav class='menu'>
+                    <a href="{% url 'work:comp_list' %}">Companies</a>
+                    <a href="{% url 'work:worker_list' %}">Workers</a>
+                    <a href="{% url 'work:create_work' %}">New</a>
+                    <a href="{% url 'work:hire' %}">Hire</a>
+                </nav>
+            </header>
+            <hr><br>
+            {% block content %}
+            {% endblock %}
+        </div>
+    </body>
+</html>

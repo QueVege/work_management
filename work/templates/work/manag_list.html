@@ -1,0 +1,14 @@
+{% extends 'work/base.html' %}
+
+{% block content %}
+    <h1 class='company'><a href="{% url 'work:comp_detail' company.id %}">{{ company.name }}</a></h1>
+    {% if managers %}
+        <ul>
+        {% for manager in managers %}
+            <li class='work'>{{ manager.first_name }} {{ manager.last_name }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class='work'>No managers.</p>
+    {% endif %}
+{% endblock %}

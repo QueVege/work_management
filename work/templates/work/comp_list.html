@@ -1,0 +1,13 @@
+{% extends 'work/base.html' %}
+
+{% block content %}
+    {% if companies %}
+        <ul>
+        {% for company in companies %}
+            <li class='company'><a href="{% url 'work:comp_detail' company.id %}">{{ company.name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class='work'>No companies.</p>
+    {% endif %}
+{% endblock %}

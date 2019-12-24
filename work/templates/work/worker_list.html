@@ -1,0 +1,25 @@
+{% extends 'work/base.html' %}
+
+{% block content %}
+    {% if workers %}
+        <ul>
+        {% for worker in workers %}
+            <div class='work'>
+                <li>
+                    <a href="{% url 'work:worker_detail' worker.id %}">{{ worker.first_name }} {{ worker.last_name }}</a>
+                    {% if worker in no_approved_wp %}
+                        <p class='position'>Not working now.</p>
+                    {% endif %}
+                    {% for wp in worker.workplaces.all %}
+                        {% if wp.status == 1 %}
+                            <p class='position'>{{ wp.work.name }} at {{ wp.work.company.name }}</p>
+                        {% endif %}
+                    {% endfor %}
+                </li>
+            </div>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p class='work'>No workers.</p>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'work/base.html' %}
+
+{% block content %}
+    <form method="post" class='adding_form'>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Add" />
+    </form>
+{% endblock %}

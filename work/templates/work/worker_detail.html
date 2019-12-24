@@ -1,0 +1,41 @@
+{% extends 'work/base.html' %}
+
+{% block content %}
+    <h1 class='company'>{{ worker.first_name }} {{ worker.last_name }}</h1>
+    {% if workplaces %}
+        <ul>
+        {% for wp in workplaces %}
+            <div class='work'>
+            {% if wp.status != 2 %}
+                <li>{{ wp.work.name }} at {{ wp.work.company.name }} ({{ wp.get_status_display }})
+                    {% if not wp.status %}
+                        <form action="{% url 'work:update_wp' wp.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="submit" class='status' value="Approve" name='approve_btn'/>
+                            <input type="submit" class='status' value="Cancel" name='cancel_btn'/>
+                        </form>
+                    {% endif %}
+                    <ul>
+                    {% for wt in wp.worktimes.all %}
+                        <li class='position'>
+                            <p>Date: {{ wt.date|date:"d.m.Y" }}</p>
+                             {{ wt.time_start|time:"H:i" }} – {{ wt.time_end|time:"H:i" }}
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </li>
+            {% endif %}
+            </div>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% if working_now %}
+        <form method="post" class='adding_form'>
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input type="submit" value="Add" />
+        </form>
+    {% else %}
+        <p class='work'>Not working now.</p>
+    {% endif %}
+{% endblock %}
