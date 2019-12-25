@@ -185,18 +185,18 @@ def update_wp(request, pk):
         if 'approve_btn' in form.data:
 
             if WorkPlace.objects.filter(
-                        worker=wp.worker).filter(status=APPROVED).exists():
-                prev_wp = WorkPlace.objects.filter(
-                        worker=wp.worker).get(status=APPROVED)
+                        worker=wp.worker, status=APPROVED).exists():
+                prev_wp = WorkPlace.objects.get(
+                        worker=wp.worker, status=APPROVED)
                 prev_wp.status = FINISHED
                 prev_wp.save()
 
             wp.status = APPROVED
 
             if WorkPlace.objects.filter(
-                        worker=wp.worker).filter(status=NEW).exists():
+                        worker=wp.worker, status=NEW).exists():
                 all_new_wp = WorkPlace.objects.filter(
-                            worker=wp.worker).filter(status=NEW)
+                            worker=wp.worker, status=NEW)
                 for new_wp in all_new_wp:
                     new_wp.status = CANCELLED
                     new_wp.save()
