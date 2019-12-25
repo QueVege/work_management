@@ -5,7 +5,7 @@ from .models import (
     Company, Work, Worker, WorkTime, WorkPlace,
     NEW, APPROVED, CANCELLED, FINISHED)
 from .forms import (
-        CreateWorkTime, ChangeStatusForm,
+        CreateWorkTimeForm, ChangeStatusForm,
         CreateWorkPlace)
 from django.views.generic import (
     View, ListView, DetailView, CreateView, FormView)
@@ -14,6 +14,7 @@ from django.contrib.auth.mixins import (
     PermissionRequiredMixin, LoginRequiredMixin)
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+from django.db.models import Q
 import logging
 import datetime
 
@@ -22,18 +23,18 @@ logger.setLevel(logging.INFO)
 
 
 class CompList(ListView):
-
-    """Implementing a view to display companies list"""
-
+    """
+    Implementing a view to display companies list
+    """
     model = Company
     template_name = 'work/comp_list.html'
     context_object_name = 'companies'
 
 
 class CompDetail(DetailView):
-
-    """Implementing a view to display company detail page"""
-
+    """
+    Implementing a view to display company detail page
+    """
     model = Company
     template_name = 'work/comp_detail.html'
 
@@ -42,14 +43,14 @@ class CompDetail(DetailView):
 
         context['works'] = self.get_object().works.all()
         context['no_approved_wp'] = self.get_object().works.exclude(
-                                                    workplaces__status=1)
+                                        workplaces__status=APPROVED)
         return context
 
 
 class ManagList(DetailView):
-
-    """Implementing a view to display manager's list"""
-
+    """
+    Implementing a view to display manager's list
+    """
     model = Company
     template_name = 'work/manag_list.html'
 
@@ -61,9 +62,9 @@ class ManagList(DetailView):
 
 
 class WorkerList(ListView):
-
-    """Implementing a view to display worker's list"""
-
+    """
+    Implementing a view to display worker's list
+    """
     model = Worker
     template_name = 'work/worker_list.html'
     context_object_name = 'workers'
@@ -72,32 +73,32 @@ class WorkerList(ListView):
         context = super().get_context_data(**kwargs)
 
         context['no_approved_wp'] = Worker.objects.exclude(
-                                    workplaces__status=1)
+                                    workplaces__status=APPROVED)
         return context
 
 
-class WorkerDisplay(DetailView):
-
-    """Implementing a view to display worker's info"""
-
+class WorkerDetail(LoginRequiredMixin, DetailView):
+    """
+    Implementing a view to display worker's info
+    """
     model = Worker
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['workplaces'] = self.get_object().workplaces.all()
-        context['form'] = CreateWorkTime()
+        context['form'] = CreateWorkTimeForm()
         if APPROVED in self.get_object().workplaces.values_list(
                                         'status', flat=True):
             context['working_now'] = True
         return context
 
 
-class WorkerWT(SingleObjectMixin, FormView):
-
-    """Implementing a view for creating worktimes"""
-
+class CreateWorkTime(FormView):
+    """
+    Implementing a view for creating worktimes
+    """
     template_name = 'work/worker_detail.html'
-    form_class = CreateWorkTime
+    form_class = CreateWorkTimeForm
     model = WorkTime
 
     def post(self, request, *args, **kwargs):
@@ -111,10 +112,13 @@ class WorkerWT(SingleObjectMixin, FormView):
 
             last_wt = None
 
-            if current_worker.workplaces.exists():
-                last_wp = current_worker.workplaces.latest('id')
-                if last_wp.worktimes.exists():
-                    last_wt = last_wp.worktimes.latest('id')
+            if WorkTime.objects.filter(
+                workplace__worker=current_worker).exists():
+
+                last_wt = WorkTime.objects.filter(
+                    workplace__worker=current_worker).latest('id')
+
+                logger.info(f'Date of last worktime: {last_wt.date}')
 
             if last_wt and last_wt.date >= date:
                 form.add_error('date', 'Incorrect date value.')
@@ -137,24 +141,11 @@ class WorkerWT(SingleObjectMixin, FormView):
             })
 
 
-class WorkerDetail(LoginRequiredMixin, View):
-
-    """Implementing a view for worker's detail page"""
- 
-    def get(self, request, *args, **kwargs):
-        view = WorkerDisplay.as_view()
-        return view(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        view = WorkerWT.as_view()
-        return view(request, *args, **kwargs)
-
-
 @method_decorator(login_required, name='dispatch')
 class CreateWork(PermissionRequiredMixin, CreateView):
-
-    """Implementing a view for creating work"""
-
+    """
+    Implementing a view for creating work
+    """
     permission_required = 'work.can_create_work'
     raise_exception = True
 
@@ -166,9 +157,9 @@ class CreateWork(PermissionRequiredMixin, CreateView):
 
 @method_decorator(login_required, name='dispatch')
 class Hire(PermissionRequiredMixin, CreateView):
-
-    """Implementing a view for hiring workers"""
-
+    """
+    Implementing a view for hiring workers
+    """
     permission_required = 'work.can_hire'
     raise_exception = True
 
@@ -181,9 +172,9 @@ class Hire(PermissionRequiredMixin, CreateView):
 
 
 def update_wp(request, pk):
-
-    """Implementing a view for changing WorkPlace status"""
-
+    """
+    Implementing a view for changing WorkPlace status
+    """
     wp = get_object_or_404(WorkPlace, pk=pk)
 
     if request.method == "POST":

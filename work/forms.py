@@ -2,7 +2,7 @@ from django import forms
 from .models import WorkTime, WorkPlace
 
 
-class CreateWorkTime(forms.ModelForm):
+class CreateWorkTimeForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         time_start = cleaned_data.get('time_start')
@@ -34,4 +34,4 @@ class CreateWorkPlace(forms.ModelForm):
 
     class Meta:
         model = WorkPlace
-        fields = ['manager', 'work', 'worker', 'week_limit']
+        fields = ('manager', 'work', 'worker', 'week_limit')

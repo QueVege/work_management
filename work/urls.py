@@ -30,9 +30,9 @@ urlpatterns = [
         name='worker_detail'
     ),
     path(
-        'workers/<int:pk>/',
-        views.WorkerWT.as_view(),
-        name='worker_wt'
+        'workers/<int:pk>/create_worktime',
+        views.CreateWorkTime.as_view(),
+        name='create_worktime'
     ),
     path(
         'create_work/',

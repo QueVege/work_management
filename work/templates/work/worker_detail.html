@@ -30,7 +30,7 @@
         </ul>
     {% endif %}
     {% if working_now %}
-        <form method="post" class='adding_form'>
+        <form action="{% url 'work:create_worktime' worker.id %}" method="post" class='adding_form'>
             {% csrf_token %}
             {{ form.as_p }}
             <input type="submit" value="Add" />
