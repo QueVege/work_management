@@ -80,7 +80,7 @@ class WorkPlace(models.Model):
 
     class Meta:
         unique_together = ['work', 'worker']
-        ordering = ['status']
+        ordering = ['status', '-id']
         permissions = (
             ('can_hire', 'Can hire workers'),
         )
@@ -105,6 +105,9 @@ class WorkTime(models.Model):
         (CANCELLED, 'Cancelled'),
     )
     status = models.IntegerField(choices=STATUS_CHOICES, default=NEW)
+
+    class Meta:
+        ordering = ['-date']
 
 
 class Statistics(models.Model):
