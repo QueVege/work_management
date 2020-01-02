@@ -1,25 +1,109 @@
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render, redirect
 from django.urls import reverse
+
+import logging
+import datetime
+
 from .models import (
-    Company, Work, Worker, WorkTime, WorkPlace,
+    Company, Manager, Work, Worker, WorkTime, WorkPlace,
     NEW, APPROVED, CANCELLED, FINISHED)
 from .forms import (
         CreateWorkTimeForm, ChangeStatusForm,
         CreateWorkPlace)
+
 from django.views.generic import (
     View, ListView, DetailView, CreateView, FormView)
 from django.views.generic.detail import SingleObjectMixin
 from django.contrib.auth.mixins import (
     PermissionRequiredMixin, LoginRequiredMixin)
+
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+
 from django.db.models import Q
-import logging
-import datetime
+
+from work.serializers import (
+    CompanySerializer, ManagerSerializer,
+    WorkSerializer, 
+    WorkPlaceSerializer, WorkPlaceDetailSerializer,
+    WorkerSerializer, WorkerDetailSerializer,
+    WorkTimeSerializer)
+
+from rest_framework import mixins
+from rest_framework import generics
+from rest_framework import viewsets
+
 
 logger = logging.getLogger('my_log')
 logger.setLevel(logging.INFO)
+
+
+class CompanyViewSet(viewsets.ModelViewSet):
+    """
+    Provides `list` and `detail` actions for Company model.
+    """
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+
+
+class WorkerViewSet(viewsets.ModelViewSet):
+    """
+    Provides `list` and `detail` actions for Worker model.
+    """
+    queryset = Worker.objects.all()
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return WorkerDetailSerializer
+        return WorkerSerializer
+
+
+class HireAPI(generics.CreateAPIView):
+    """
+    Provides 'create' action for WorkPlace model.
+    """
+    queryset = WorkPlace.objects.all()
+    serializer_class = WorkPlaceSerializer
+
+
+class WorkPlaceDetailAPI(generics.RetrieveAPIView):
+    """
+    Provides  `detail` action for WorkPlace model.
+    """
+    queryset = WorkPlace.objects.all()
+    serializer_class = WorkPlaceDetailSerializer
+
+
+class WorkTimeListAPI(generics.ListCreateAPIView):
+    """
+    Provides  `list` action for WorkTime model.
+    """
+    queryset = WorkTime.objects.all()
+    serializer_class = WorkTimeSerializer
+
+    def get_queryset(self):
+        return WorkTime.objects.filter(workplace__id=self.kwargs['pk'])
+
+    def perform_create(self, serializer):
+        workplace = WorkPlace.objects.get(id=self.kwargs['pk'])
+        worker = workplace.worker
+        return serializer.save(workplace=workplace, worker=worker)
+
+
+class WorkListAPI(generics.ListCreateAPIView):
+    """
+    Provides  `list` action for WorkTime model.
+    """
+    queryset = Work.objects.all()
+    serializer_class = WorkSerializer
+
+    def get_queryset(self):
+        return Work.objects.filter(company__id=self.kwargs['pk'])
+
+    def perform_create(self, serializer):
+        company = Company.objects.get(id=self.kwargs['pk'])
+        return serializer.save(company=company)
 
 
 class CompList(ListView):
