@@ -9,16 +9,12 @@ class ManagerSerializer(serializers.ModelSerializer):
     """
     Serializer for Manager model.
     """
-    name = serializers.SerializerMethodField('full_name')
-
-    def full_name(self, man):
-        return f'{man.first_name} {man.last_name}'
-
     class Meta:
         model = Manager
         fields = (
             'id',
-            'name',
+            'first_name',
+            'last_name',
             'email',
         )
 
@@ -86,7 +82,7 @@ class WorkPlaceSerializer(serializers.ModelSerializer):
     Serializer for WorkPlace model.
     """
     url = serializers.HyperlinkedIdentityField(
-        view_name="work:wp-detail")
+        view_name="work:workplace-detail")
 
     status = serializers.ReadOnlyField(source='get_status_display')
 
@@ -127,7 +123,7 @@ class WorkPlaceDetailSerializer(serializers.ModelSerializer):
     """
     work = serializers.ReadOnlyField(source='work.name')
     status = serializers.CharField(source='get_status_display')
-    worktimes = serializers.HyperlinkedIdentityField(view_name='work:wt-list')
+    worktimes = WorkTimeSerializer(read_only=True, many=True, required=False)
     worker = serializers.SerializerMethodField('full_name')
 
     def full_name(self, wp):

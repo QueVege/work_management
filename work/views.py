@@ -33,6 +33,10 @@ from work.serializers import (
 from rest_framework import mixins
 from rest_framework import generics
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from work.permissions import IsManager
 
 
 logger = logging.getLogger('my_log')
@@ -41,16 +45,36 @@ logger.setLevel(logging.INFO)
 
 class CompanyViewSet(viewsets.ModelViewSet):
     """
-    Provides `list` and `detail` actions for Company model.
+    Provides 'list' and 'detail' actions for Company model.
     """
     queryset = Company.objects.all()
-    serializer_class = CompanySerializer
+
+    def get_serializer_class(self):
+        if self.action == 'add_manager':
+            return ManagerSerializer
+        return CompanySerializer
+
+    @action(detail=True, methods=['post'])
+    def add_manager(self, request, pk=None):
+        """
+        Create new manager for currunt company
+        """
+        company = self.get_object()
+
+        serializer = ManagerSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(company=company)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class WorkerViewSet(viewsets.ModelViewSet):
     """
-    Provides `list` and `detail` actions for Worker model.
+    Provides 'list' and 'detail' actions for Worker model.
     """
+    permission_classes = (IsAuthenticated,)
     queryset = Worker.objects.all()
 
     def get_serializer_class(self):
@@ -59,42 +83,70 @@ class WorkerViewSet(viewsets.ModelViewSet):
         return WorkerSerializer
 
 
-class HireAPI(generics.CreateAPIView):
+class WorkPlaceViewSet(viewsets.ModelViewSet):
     """
-    Provides 'create' action for WorkPlace model.
+    Provides 'list' and 'detail' actions for WorkPlace model.
     """
+    permission_classes = (IsAuthenticated, IsManager)
     queryset = WorkPlace.objects.all()
-    serializer_class = WorkPlaceSerializer
+    http_method_names = ['get', 'post', 'head', 'options']
 
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return WorkPlaceDetailSerializer
+        elif self.action == 'add_worktime':
+            return WorkTimeSerializer
+        return WorkPlaceSerializer
 
-class WorkPlaceDetailAPI(generics.RetrieveAPIView):
-    """
-    Provides  `detail` action for WorkPlace model.
-    """
-    queryset = WorkPlace.objects.all()
-    serializer_class = WorkPlaceDetailSerializer
+    @action(detail=True)
+    def cancel(self, request, pk=None):
+        """
+        Cancel new workplace
+        """
+        wp = self.get_object()
+        serializer = self.get_serializer(wp)
+        if wp.status == NEW:
+            wp.status = CANCELLED
+            wp.save()
+        return Response(serializer.data)
 
+    @action(detail=True)
+    def approve(self, request, pk=None):
+        """
+        Approve new workplace
+        """
+        wp = self.get_object()
+        serializer = self.get_serializer(wp)
+        if wp.status == NEW:        
+            WorkPlace.objects.filter(worker=wp.worker, status=APPROVED).update(status=FINISHED)
+            wp.status = APPROVED
+            wp.save()
+            WorkPlace.objects.filter(worker=wp.worker, status=NEW).update(status=CANCELLED)
+        return Response(serializer.data)
 
-class WorkTimeListAPI(generics.ListCreateAPIView):
-    """
-    Provides  `list` action for WorkTime model.
-    """
-    queryset = WorkTime.objects.all()
-    serializer_class = WorkTimeSerializer
+    @action(detail=True, methods=['post'])
+    def add_worktime(self, request, pk=None):
+        """
+        Create new worktime for currunt workplace
+        """
+        wp = self.get_object()
+        if wp.status != APPROVED:
+            return
 
-    def get_queryset(self):
-        return WorkTime.objects.filter(workplace__id=self.kwargs['pk'])
-
-    def perform_create(self, serializer):
-        workplace = WorkPlace.objects.get(id=self.kwargs['pk'])
-        worker = workplace.worker
-        return serializer.save(workplace=workplace, worker=worker)
+        serializer = WorkTimeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(workplace=wp, worker=wp.worker)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class WorkListAPI(generics.ListCreateAPIView):
     """
-    Provides  `list` action for WorkTime model.
+    Provides  'list' action for WorkTime model.
     """
+    permission_classes = (IsAuthenticated, IsManager)
     queryset = Work.objects.all()
     serializer_class = WorkSerializer
 

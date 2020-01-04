@@ -7,6 +7,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'companies', views.CompanyViewSet, basename='comp')
 router.register(r'workers', views.WorkerViewSet)
+router.register(r'workplaces', views.WorkPlaceViewSet)
 
 app_name = 'work'
 
@@ -16,21 +17,7 @@ urlpatterns = [
 
 urlpatterns += format_suffix_patterns([
     path(
-        'hire/',
-        views.HireAPI.as_view()
-    ),
-    path(
-        'workplaces/<int:pk>/',
-        views.WorkPlaceDetailAPI.as_view(),
-        name='wp-detail'
-    ),
-    path(
-        'workplaces/<int:pk>/worktimes',
-        views.WorkTimeListAPI.as_view(),
-        name='wt-list'
-    ),
-    path(
-        'companies/<int:pk>/works',
+        'companies/<int:pk>/works/',
         views.WorkListAPI.as_view(),
         name='work-list'
     ),
