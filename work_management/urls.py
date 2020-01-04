@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework_swagger.views import get_swagger_view
 
 schema_view = get_swagger_view(title='Pastebin API')
@@ -24,4 +25,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('work.urls', namespace='work')),
     path('accounts/', include('accounts.urls', namespace='accounts')),
+    path('api-token-auth/', obtain_auth_token, name='api_token_auth'),
 ]
