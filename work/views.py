@@ -137,7 +137,7 @@ class WorkPlaceViewSet(viewsets.ModelViewSet):
             return Response(data, status=status.HTTP_404_NOT_FOUND)
 
         serializer = WorkTimeSerializer(data=request.data, context={'pk': self.kwargs['pk']})
-
+        
         if serializer.is_valid():
             serializer.save(workplace=wp, worker=wp.worker)
             return Response(serializer.data)
