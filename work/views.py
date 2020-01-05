@@ -131,7 +131,8 @@ class WorkPlaceViewSet(viewsets.ModelViewSet):
         """
         wp = self.get_object()
         if wp.status != APPROVED:
-            return
+            data = {'detail': 'this action is allowed only for approved workplaces'}
+            return Response(data, status=status.HTTP_404_NOT_FOUND)
 
         serializer = WorkTimeSerializer(data=request.data)
         if serializer.is_valid():
