@@ -59,12 +59,24 @@ class WorkTimeSerializer(serializers.ModelSerializer):
     """
     Serializer for WorkTime model.
     """
-    def validate_time(self, data):
+    def validate(self, data):
         """
-        Check that the start is before the end
+        Check that the start date and time is before the end
         """
+        date = data['date']
+        current_wp = WorkPlace.objects.get(id=self.context['pk'])
+        last_wt = None
+        if WorkTime.objects.filter(
+                   workplace__worker=current_wp.worker).exists():
+            last_wt = WorkTime.objects.filter(
+                    workplace__worker=current_wp.worker).latest('id')
+
+            if last_wt and last_wt.date >= date:
+                raise serializers.ValidationError('Incorrect date value')
+
         if data['time_start'] >= data['time_end']:
             raise serializers.ValidationError('Incorrect time values')
+        
         return data
 
     class Meta:

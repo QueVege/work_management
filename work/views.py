@@ -35,6 +35,8 @@ from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from work.permissions import IsManager
 
@@ -87,7 +89,7 @@ class WorkPlaceViewSet(viewsets.ModelViewSet):
     """
     Provides 'list' and 'detail' actions for WorkPlace model.
     """
-    permission_classes = (IsAuthenticated, IsManager)
+    # permission_classes = (IsAuthenticated, IsManager)
     queryset = WorkPlace.objects.all()
     http_method_names = ['get', 'post', 'head', 'options']
 
@@ -131,9 +133,11 @@ class WorkPlaceViewSet(viewsets.ModelViewSet):
         """
         wp = self.get_object()
         if wp.status != APPROVED:
-            return
+            data = {'detail': 'this action is allowed only for approved workplaces'}
+            return Response(data, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = WorkTimeSerializer(data=request.data)
+        serializer = WorkTimeSerializer(data=request.data, context={'pk': self.kwargs['pk']})
+
         if serializer.is_valid():
             serializer.save(workplace=wp, worker=wp.worker)
             return Response(serializer.data)
