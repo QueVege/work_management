@@ -89,7 +89,7 @@ class WorkPlaceViewSet(viewsets.ModelViewSet):
     """
     Provides 'list' and 'detail' actions for WorkPlace model.
     """
-    # permission_classes = (IsAuthenticated, IsManager)
+    permission_classes = (IsAuthenticated, IsManager)
     queryset = WorkPlace.objects.all()
     http_method_names = ['get', 'post', 'head', 'options']
 
