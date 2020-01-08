@@ -29,6 +29,10 @@ class CompList(ListView):
     model = Company
     template_name = 'work/comp_list.html'
     context_object_name = 'companies'
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['page_name'] = 'companies'
+        return context
 
 
 class CompDetail(DetailView):
@@ -44,6 +48,7 @@ class CompDetail(DetailView):
         context['works'] = self.get_object().works.all()
         context['no_approved_wp'] = self.get_object().works.exclude(
                                         workplaces__status=APPROVED)
+        # context['page_name'] = f'company_{self.get_object().id}'
         return context
 
 
@@ -58,6 +63,7 @@ class ManagList(DetailView):
         context = super().get_context_data(**kwargs)
 
         context['managers'] = self.get_object().managers.all()
+        # context['page_name'] = f'managers_{self.get_object().id}'
         return context
 
 
@@ -74,6 +80,7 @@ class WorkerList(ListView):
 
         context['no_approved_wp'] = Worker.objects.exclude(
                                     workplaces__status=APPROVED)
+        context['page_name'] = 'workers'
         return context
 
 
@@ -90,6 +97,7 @@ class WorkerDetail(LoginRequiredMixin, DetailView):
         if APPROVED in self.get_object().workplaces.values_list(
                                         'status', flat=True):
             context['working_now'] = True
+        # context['page_name'] = f'worker_{self.get_object().id}'
         return context
 
 

@@ -26,12 +26,14 @@
         </div>
     </body>
     <script>
+        var pageName = "{{ page_name|escapejs }}";
+
         var socket = new WebSocket(
-        'ws://' + window.location.host +
-        '/ws/companies/');
+            'ws://' + window.location.host +
+            '/ws/' + pageName + '/');
 
         socket.onopen = function open() {
-            console.log('WebSockets connection created.');
+            console.log('WebSockets connection created at ' + pageName);
         };
 
         socket.onmessage = function message(event) {
