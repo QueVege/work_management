@@ -25,4 +25,24 @@
             {% endblock %}
         </div>
     </body>
+    <script>
+        var socket = new WebSocket(
+        'ws://' + window.location.host +
+        '/ws/companies/');
+
+        socket.onopen = function open() {
+            console.log('WebSockets connection created.');
+        };
+
+        socket.onmessage = function message(event) {
+            var data = JSON.parse(event.data);
+            var message = data['message'];
+            window.location.reload(true);
+            console.log(message);
+        };
+
+        if (socket.readyState == WebSocket.OPEN) {
+            socket.onopen();
+        }
+    </script>
 </html>
