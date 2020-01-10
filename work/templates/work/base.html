@@ -27,13 +27,19 @@
     </body>
     <script>
         var pageName = "{{ page_name|escapejs }}";
+        var pageId = "{{ page_id|escapejs }}";
 
-        var socket = new WebSocket(
-            'ws://' + window.location.host +
-            '/ws/' + pageName + '/');
+        var path = 'ws://' + window.location.host +
+                    '/ws/' + pageName + '/';
+
+        if (pageId) {
+            path += pageId + '/';
+        }
+
+        var socket = new WebSocket(path);
 
         socket.onopen = function open() {
-            console.log('WebSockets connection created at ' + pageName);
+            console.log('WebSockets connection created');
         };
 
         socket.onmessage = function message(event) {

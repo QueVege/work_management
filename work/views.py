@@ -97,7 +97,8 @@ class WorkerDetail(LoginRequiredMixin, DetailView):
         if APPROVED in self.get_object().workplaces.values_list(
                                         'status', flat=True):
             context['working_now'] = True
-        # context['page_name'] = f'worker_{self.get_object().id}'
+        context['page_name'] = 'workers'
+        context['page_id'] = self.get_object().id
         return context
 
 
